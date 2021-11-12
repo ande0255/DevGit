@@ -20,52 +20,48 @@
 # python3 -m pip --version
 # python3 pip install
 #
+# --- Install Python "requests" library from PIP:
+#
+# pip install requests
+#--- Install GetPass for use within Python script:
+#
+# sudo apt install getpass
+#
 # --- Create requirements.txt file in Venv to install packages by issuing the below command :
 #
 # nano requests.txt
 #
 #--- This will create empty requirements.txt file and drop you inter text editor, copy / paste the below packages (remove any # or spaces) :
 #
-# napalm>=2.4.0
 # ncclient>=0.6.3
 # netmiko>=2.3.3
-# pyang>=1.7.5
-# PyYAML>=5.1
 # requests>=2.21.0
 # urllib3>=1.24.1
-# xmltodict>=0.12.0
-# wheel
 #
 # --- Use key combo below to exit text editor while saving changes:
 #
 # ctrl x + y + enter (Select Y to confirm saving changes to file
 #
-# --- Install Python "requests" library from PIP:
-#
-# pip install requests
-#
 #--- Issue below command to save the current state of Py Venv: 
 #
 #pip freeze
 #
-#--- Install GetPass for use within Python script:
+# Below is the Python script for retrieving "sh ver" and "sh run" from Cisco switches, comments added to explain logic / values required for script to work properly :
 #
-# sudo apt install getpass
 #
-# Below is the Python script for retrieving "sh ver" and "sh run" from Cisco switches, comments added to explain logic / values required for script to work properly
 from getpass import getpass
 from netmiko import ConnectHandler
 
 password = getpass()
 
-ipaddrs = ["192.168.160.201", "10.10.10.11"] # List all IP Addresses for script to run against
+ipaddrs = ["192.168.160.201", "10.10.10.11"] # List of all IP Addresses for script to run against
 
 devices = [
     {
-        "device_type": "cisco_ios",
-        "host": ip,
-        "username": "UserName",
-        "password": password,
+        "device_type": "cisco_ios", # Static value specific for Cisco IOS devices
+        "host": ip,                 # Variable that calls for items defined in ipaddrs
+        "username": "UserName",     # Static value for the Admin Username
+        "password": password,       # Variable that will require Admin pw to be entered once when script executes
     }
     for ip in ipaddrs
 ]
@@ -73,12 +69,9 @@ devices = [
 for device in devices:
     print(f'Connecting to the device: {device["host"]}')
 
-    with ConnectHandler(**device) as net_connect:  # Using Context Manager
+    with ConnectHandler(**device) as net_connect:  # Opens SSH sessions with Context Manager to automatically close sessions upon script ending
         output = net_connect.send_command('sh ver')
         output = net_connect.send_command('sh run')
 
-        # Notice here I didn't call the `net_connect.disconnect()`
-        # because the `with` statement automatically disconnects the session.
-
-    # On this indentation level (4 spaces), the connection is terminated
+    # Final print statement at this level of code block (4 indentations) will tell Context Manager to close connection and iterate to next ip in ipaddrs
     print(output)
